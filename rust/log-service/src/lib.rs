@@ -2057,7 +2057,7 @@ impl LogServer {
                 return Err(Status::new(err.code().into(), err.to_string()));
             }
         };
-        let futures = fragments
+        let fragment_futures = fragments
             .iter()
             .map(|fragment| {
                 let this = self;
@@ -2092,8 +2092,8 @@ impl LogServer {
             })
             .collect::<Vec<_>>();
         let try_join_all_span = tracing::info_span!("join all");
-        let record_batches = if !futures.empty() {
-            futures::future::try_join_all(futures)
+        let record_batches = if !fragment_futures.is_empty() {
+            futures::future::try_join_all(fragment_futures)
                 .instrument(try_join_all_span)
                 .await
                 .map_err(|err: Error| Status::new(err.code().into(), err.to_string()))?
